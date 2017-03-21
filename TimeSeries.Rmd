@@ -1,0 +1,190 @@
+---
+title: "Prognoza depozytóW"
+output:
+  html_document: 
+    toc: true
+  pdf_document: default
+---
+# Pakiety, wczytywanie funkcji u¿ytkownika i przygotowywanie danych
+
+```{r setup, include=TRUE}
+library(foreign)
+library(zoo)
+library(ggplot2)
+library(scales)
+library(stats)
+#install.packages("reshape")
+library(reshape)
+library(forecast)
+#install.packages("directlabels")
+library(directlabels)
+library(data.table)
+library(lubridate)
+library(data.table)
+#install.packages("chron")
+library(chron)
+library(timeDate)
+options(scipen=999) # Odpowiedni format liczb
+source("X:/35_TS_LCR/myFunctions.R") # wczytywanie funkcji
+
+Dane <- dane()
+Dane_Uzupelnione <- dane_uzupelnione(Dane)
+obs_number <- length(Dane_Uzupelnione[,1])
+```
+
+# Wykres szeregu czasowego (z dodanymi wartoœciami)
+Wykres szeregu czasowego z uzupe³nionymi danymi.
+
+```{r include=TRUE}
+Szereg <- tworzenie_szeregu(Dane_Uzupelnione)
+ggplot(Szereg, aes(Szereg$dzien, Szereg$x)) + geom_line() 
+```
+
+# Dekompozycja szeregu czasowego na czêœæ sezonow¹, trend oraz czynnik losowy
+
+```{r include=TRUE}
+Dekompozycja_Szereg <- stl(Szereg$x, "periodic") # Wykorzystanie funkcji stl do dokompozycji
+Seasonal_Szereg <- Dekompozycja_Szereg$time.series[,1]
+Trend_Szereg <- Dekompozycja_Szereg$time.series[,2]
+Random_Szereg <- Dekompozycja_Szereg$time.series[,3]
+acf(Dekompozycja_Szereg$time.series) # Funkcja autokorelacji
+```
+
+## Sezonowoœæ
+
+```{r, include=TRUE}
+Seasonal_Szereg <- as.data.frame(Seasonal_Szereg)
+Seasonal_Szereg["dzien"] <- seq(1:obs_number)
+ggplot(Seasonal_Szereg, aes(Seasonal_Szereg$dzien, Seasonal_Szereg$x)) + geom_line()
+```
+
+## Trend
+
+```{r, include=TRUE}
+Trend_Szereg <- as.data.frame(Trend_Szereg)
+Trend_Szereg["dzien"] <- seq(1:obs_number)
+ggplot(Trend_Szereg, aes(Trend_Szereg$dzien, Trend_Szereg$x)) + geom_line()  
+```
+
+## Czynnik losowy
+
+```{r, include=TRUE}
+Random_Szereg <- as.data.frame(Random_Szereg)
+Random_Szereg["dzien"] <- seq(1:obs_number)
+ggplot(Random_Szereg, aes(Random_Szereg$dzien, Random_Szereg$x)) + geom_line()
+```
+
+# Analiza miesiêcy w zale¿noœci od dnia tygodnia, którym dany miesi¹c siê koñczy
+
+```{r, include = TRUE}
+# PONIEDZIA£EK: 2015: sierpieñ (31 dni), listopad (30 dni); 2016: luty (29 dni), paŸdziernik (31 dni)
+ggplot(Szereg[218:248,], aes(seq(1:31), Szereg$x[218:248])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[311:341]), col = "red") +
+  geom_line(aes(seq(1:31), Szereg$x[404:434]), col = "green") + geom_line(aes(seq(1:31), Szereg$x[652:682]), col = "blue")
+
+# WTOREK: 2015: marzec (31 dni), czerwiec (30 dni); 2016: maj (31 dni)
+ggplot(Szereg[63:93,], aes(seq(1:31), Szereg$x[63:93])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[156:186]), col = "red") + 
+  geom_line(aes(seq(1:31),Szereg$x[497:527]), col = "green")
+
+# ŒRODA: 2015: wrzesieñ (30 dni); 2016: sierpieñ (31 dni), listopad (30 dni)
+ggplot(Szereg[249:279,], aes(seq(1:31), Szereg$x[249:279])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[590:620]), col = "red") + 
+  geom_line(aes(seq(1:31),Szereg$x[683:713]), col = "green")
+
+# CZWARTEK: 2015: kwiecieñ (30 dni), grudzieñ (31 dni); 2016: marzec (31 dni), czerwiec (30 dni)
+ggplot(Szereg[94:124,], aes(seq(1:31), Szereg$x[94:124])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[342:372]), col = "red") + 
+  geom_line(aes(seq(1:31), Szereg$x[435:465]), col = "green") + geom_line(aes(seq(1:31), Szereg$x[528:558]), col = "blue")
+
+# PI¥TEK: 2015: lipiec (31 dni); 2016: wrzesieñ (30 dni)
+ggplot(Szereg[187:217,], aes(seq(1:31), Szereg$x[187:217])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[621:651]), col = "red") 
+
+# SOBOTA: 2015: styczeñ (31 dni), luty (28 dni), paŸdziernik (31 dni); 2016: kwiecieñ (30 dni), grudzieñ (31 dni)
+ggplot(Szereg[1:31,], aes(Szereg$dzien[1:31], Szereg$x[1:31])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[32:62]), col = "red") +
+  geom_line(aes(seq(1:31),Szereg$x[280:310]), col = "green") + geom_line(aes(seq(1:31), Szereg$x[125:155]), col = "blue") +
+  geom_line(aes(seq(1:31), Szereg$x[466:496]), col = "yellow") + geom_line(aes(seq(1:31), Szereg$x[714:744]), col = "white")
+
+# NIEDZIELA: 2015: maj (31 dni); 2016: styczeñ (31 dni), lipiec (31 dni)
+ggplot(Szereg[1:31,], aes(seq(1:31), Szereg$x[125:155])) + geom_line() + geom_line(aes(seq(1:31),Szereg$x[373:403]), col = "red") +
+  geom_line(aes(seq(1:31),Szereg$x[559:589]), col = "green")
+```
+
+# Wyznaczanie sezonowoœci dla poszczególnych grup miesiêcy (w zale¿noœci od ostatniego dnia miesi¹ca)
+
+```{r, include=TRUE}
+# PONIEDZIA£EK, czasami 10 wypada w weekend
+poniedzialek <- filtruj_miesiace2(Dane_Uzupelnione, "poniedzia³ek") # wybieranie miesiecy, ktore koncza sie poniedzialkiem
+poniedzialek <- scalaj(poniedzialek, Dane_Uzupelnione)
+poniedzialek_seasonal <- sezonowosc(poniedzialek)
+ggplot(poniedzialek_seasonal, aes(poniedzialek_seasonal$dzien, poniedzialek_seasonal$x)) + geom_line()
+
+# WTOREK
+wtorek <- filtruj_miesiace2(Dane_Uzupelnione, "wtorek") # wybieranie miesiecy, ktore koncza sie wtorkiem
+wtorek <- scalaj(wtorek, Dane_Uzupelnione)
+wtorek_seasonal <- sezonowosc(wtorek)
+ggplot(wtorek_seasonal, aes(wtorek_seasonal$dzien, wtorek_seasonal$x)) + geom_line()
+
+# ŒRODA
+sroda <- filtruj_miesiace2(Dane_Uzupelnione, "œroda")
+sroda <- scalaj(sroda, Dane_Uzupelnione)
+sroda_seasonal <- sezonowosc(sroda)
+ggplot(sroda_seasonal, aes(sroda_seasonal$dzien, sroda_seasonal$x)) + geom_line()
+
+# CZWARTEK
+czwartek <- filtruj_miesiace2(Dane_Uzupelnione, "czwartek")
+czwartek <- scalaj(czwartek, Dane_Uzupelnione)
+czwartek_seasonal <- sezonowosc(czwartek)
+ggplot(czwartek_seasonal, aes(czwartek_seasonal$dzien, czwartek_seasonal$x)) + geom_line()
+
+# PI¥TEK - dla piatku obecnie tylko dwie obserwacje (13.03.2017)
+piatek <- filtruj_miesiace2(Dane_Uzupelnione, "pi¹tek")
+piatek <- scalaj(piatek, Dane_Uzupelnione)
+piatek_seasonal <- sezonowosc(piatek)
+ggplot(piatek_seasonal, aes(piatek_seasonal$dzien, piatek_seasonal$x)) + geom_line()
+
+# SOBOTA
+sobota <- filtruj_miesiace2(Dane_Uzupelnione, "sobota")
+sobota <- scalaj(sobota, Dane_Uzupelnione)
+sobota_seasonal <- sezonowosc(sobota)
+ggplot(sobota_seasonal, aes(sobota_seasonal$dzien, sobota_seasonal$x)) + geom_line()
+
+# NIEDZIELA
+niedziela <- filtruj_miesiace2(Dane_Uzupelnione, "niedziela")
+niedziela <- scalaj(niedziela, Dane_Uzupelnione)
+niedziela_seasonal <- sezonowosc(niedziela)
+ggplot(niedziela_seasonal, aes(niedziela_seasonal$dzien, niedziela_seasonal$x)) + geom_line()
+```
+
+## HoltWinters trend
+
+```{r, include=TRUE}
+Holt_Winters_Forecast <- holt_winters_prognoza(Trend_Szereg)
+HWplot(ts(Trend_Szereg$x[1:length(Szereg$x)], frequency=372), n.ahead = 31)
+
+predykcja <- prediction(Dane_Uzupelnione, Trend_Szereg, 25)
+rysuj_prognoze(predykcja)
+
+write.table(predykcja, file = "predykcja.xls")
+```
+
+## Sezonowsc w zaleznosci od pik'u
+
+```{r, include=TRUE}
+# Pik 10 - bierzemy dane dla 8 - 11
+A <- extract_wypl(Dane_Uzupelnione, as.Date(timeFirstDayInMonth(last(Dane_Uzupelnione$date))))
+A <- sezonowosc(scalaj(A, Dane_Uzupelnione))
+ggplot(A, aes(seq(1:31), A$x[1:31])) + geom_line()
+
+# Pik 9 - 
+A <- extract_wypl(Dane_Uzupelnione, as.Date("2016-12-01"))
+A <- sezonowosc(scalaj(A, Dane_Uzupelnione))
+ggplot(A, aes(seq(1:31), A$x[1:31])) + geom_line()
+
+# Pik 8
+A <- extract_wypl(Dane_Uzupelnione, as.Date("2016-07-01"))
+A <- sezonowosc(scalaj(A, Dane_Uzupelnione))
+ggplot(A, aes(seq(1:31), A$x[1:31])) + geom_line()
+
+# Pik 7
+A <- extract_wypl(Dane_Uzupelnione, as.Date("2016-10-01"))
+A <- sezonowosc(scalaj(A, Dane_Uzupelnione))
+ggplot(A, aes(seq(1:31), A$x[1:31])) + geom_line()
+
+```
