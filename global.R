@@ -15,7 +15,7 @@ library(chron)
 library(timeDate)
 
 options(scipen=999) # Odpowiedni format liczb
-source("X:/35_TS_LCR/myFunctions.R") # wczytywanie funkcji
+source("myFunctions.R") # wczytywanie funkcji
 
 ################################
 # PARAMETRY POCZATKOWE

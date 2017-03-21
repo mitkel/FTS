@@ -30,7 +30,7 @@ mean_fill <- function(v){
   return(v)
 }
 
-# dodaje brakuj¹ce dni (weekendy)
+# dodaje brakuj?ce dni (weekendy)
 df_missing_update <- function(df_ts, day_added = 13, basis = "day") {
   pocz <- df_ts[1,1]
   konc <- tail(df_ts[,1], n=1)
@@ -78,10 +78,10 @@ rm_excess <- function(A,freq){
 }
 
 ###############################################################
-#       WYBÓR MIESIÊCY W ZALÊZNOŒCI OD PIKU
+#       WYB?R MIESI?CY W ZAL?ZNO?CI OD PIKU
 ###############################################################
 
-##### Analiza ze wzglêdu na pik 10. dnia miesi¹ca
+##### Analiza ze wzgl?du na pik 10. dnia miesi?ca
 extract_wypl <- function(df, dzien){
   df <- check_wypl(df)
   day <- df$pik[as.Date(dzien) == as.Date(df$date)]
@@ -89,7 +89,7 @@ extract_wypl <- function(df, dzien){
   return(df[Idx,])
 }
 
-#sprawdza, czy w danym miesiacu 10 jest dniem roboczym. Dzia³a dla wektorów
+#sprawdza, czy w danym miesiacu 10 jest dniem roboczym. Dzia?a dla wektor?w
 check_wypl <- function(df){
   res <- logical()
   i <- 1
@@ -126,8 +126,8 @@ wybierz_miesiace_pik <- function(pik, df){
   return(df[Idx,])
 }
   
-##### Analiza ze wzglêdu na ostatni dzieñ miesi¹ca
-# funkcja zwracaj¹ca ostatni dzieñ miesi¹ca jako datê
+##### Analiza ze wzgl?du na ostatni dzie? miesi?ca
+# funkcja zwracaj?ca ostatni dzie? miesi?ca jako dat?
 eom <- function(dzien){
   
   if(month(as.Date(dzien)) == 12){
@@ -154,15 +154,15 @@ idx_of_months_ending_with <- function(days_ts, day)
 }
 
 
-# zwraca indeksy dat, które s¹ prawdziwymi datami
+# zwraca indeksy dat, kt?re s? prawdziwymi datami
 retreive_true_dates <- function(dlugosc_szeregu, start, uzup_dzien)
 {
-  # start jest pierwsz¹ dat¹ poprzedzaj¹c¹ szereg
+  # start jest pierwsz? dat? poprzedzaj?c? szereg
   day <- as.Date(start)
   Idx <- logical()
   licz <- 0
   
-  # check na sytuacjê kiedy poczatek prognozy jest uzupe³nionym dniem
+  # check na sytuacj? kiedy poczatek prognozy jest uzupe?nionym dniem
   if(day(as.Date(day)) == uzup_dzien){
     excess <- 31 - day(eom(day))
     licz <- licz + excess + 1
@@ -208,20 +208,20 @@ cast_prediction <- function(predykcja, start_day = starting_day){
 
 
 #######################################################################################################################################################
-#           Obróbka danych
+#           Obr?bka danych
 #######################################################################################################################################################
 
 
 dane <- function(scale=1){
-  x <- read.csv(file = "X:/35_TS_LCR/IND_NYD_forecast/data/hist RB KO ON.csv", header = TRUE, sep = ";", dec = ".") # wczytywanie danych
-  Y <- x[c("Data", "Segment", "tenor_org", "Iso_crncy_cde", "bal_amt")] # wyci¹ganie odpowiednich kolumn
+  x <- read.csv(file = "data/hist RB KO ON.csv", header = TRUE, sep = ";", dec = ".") # wczytywanie danych
+  Y <- x[c("Data", "Segment", "tenor_org", "Iso_crncy_cde", "bal_amt")] # wyci?ganie odpowiednich kolumn
   colnames(Y) <- c("date", "segment", "prod", "ccy", "bal_amt") # nadanie odpowiednich nazw
   
   Y_filled <- Y[c("date", "bal_amt")][Y$ccy == "PLN" & Y$segment == "IND" & Y$prod == "NYD", ] # filtrowanie danych
   # Y_filled <- Y[c("date", "bal_amt")][Y$ccy == "PLN" & (Y$segment == "SME") & (Y$prod == "NYD" | Y$prod == "YD"),] # filtrowanie danych
   
   Y_filled <- aggregate(Y_filled$bal_amt, list(Y_filled$date), sum) # agregacja danych po dacie
-  colnames(Y_filled) <- c("date", "bal_amt") # zmiana nazwa dwóch pozosta³ych kolumn
+  colnames(Y_filled) <- c("date", "bal_amt") # zmiana nazwa dw?ch pozosta?ych kolumn
   Y_filled$date <- as.Date( Y_filled$date, '%Y-%m-%d') # ustalanie formatu daty
   
   Y_filled$bal_amt <- Y_filled$bal_amt/scale
@@ -231,9 +231,9 @@ dane <- function(scale=1){
 dane_uzupelnione <- function(Y,uzup_dzien=13){
   Y_filled <- Y
   Y_filled$date <- as.Date( Y_filled$date, '%Y-%m-%d') # ustalanie formatu daty
-  Y_filled <- df_missing_update_brakujace_daty(Y_filled) # uzupe³nianie dat
+  Y_filled <- df_missing_update_brakujace_daty(Y_filled) # uzupe?nianie dat
   Y_filled <- df_missing_update(Y_filled, uzup_dzien) # dodawanie sztucznych dat do miesiecy, ktore nie maja 31 dni
-  Y_filled$bal_amt[1] <- Y_filled$bal_amt[2] # uzupe³nienie wartosci dla pierwszego stycznia 2015
+  Y_filled$bal_amt[1] <- Y_filled$bal_amt[2] # uzupe?nienie wartosci dla pierwszego stycznia 2015
   Y_filled$bal_amt <- as.numeric(Y_filled$bal_amt) 
   Y_filled$bal_amt <- mean_fill(Y_filled$bal_amt) # uzupelnianie brakujacych wartosci srednia
   Y_filled[,"dzien"] <- seq(1:length(Y_filled[,1]))
@@ -262,7 +262,7 @@ prediction <- function(dane, Szereg, liczba_dni = 31){
   czynnik_sezonowy <- filtruj_miesiace2(dane, ostatni_dzien)
   czynnik_sezonowy <- sezonowosc(scalaj(czynnik_sezonowy, dane))
   dzien_miesiaca <- day(dane$date[length(dane$date)])
-  if(ostatni_dzien == "poniedzia³ek" || ostatni_dzien == "pi¹tek" || ostatni_dzien == "sobota" || ostatni_dzien == "niedziela"){
+  if(ostatni_dzien == "poniedziaÅ‚ek" || ostatni_dzien == "pi?tek" || ostatni_dzien == "sobota" || ostatni_dzien == "niedziela"){
     czynnik_sezonowy <- zmiana_czynnika_sezon(czynnik_sezonowy, pik, ostatni_dzien)
   }  
   prognoza <- dane$bal_amt[length(dane$bal_amt)] + trend$`Point Forecast`[(1:liczba_dni)] - trend$`Point Forecast`[1]
@@ -320,13 +320,13 @@ zmiana_czynnika_sezon <- function(czynnik, pik, ostatni_dzien){
     }
   }
   if(dzien_pik == 10){
-    if(ostatni_dzien == "poniedzia³ek"){
+    if(ostatni_dzien == "poniedzia?ek"){
       for(i in 7:10){
         wzrost <- pik$x[i+1] - pik$x[i]
         czynnik$x[i+1] <- wzrost + czynnik$x[i]
       }
     }
-    if(ostatni_dzien == "pi¹tek"){
+    if(ostatni_dzien == "pi?tek"){
       for(i in 8:10){
         wzrost <- pik$x[i+1] - pik$x[i]
         czynnik$x[i+1] <- wzrost + czynnik$x[i]
@@ -383,8 +383,8 @@ df_missing_update_brakujace_daty <- function(df_ts){
 }
 
 
-# Funkcja do tworzenia szeregu czasowego na podstawie wybranych miesiêcy
-# UWAGA! - trzeba zadbaæ o odpowiednie nazwy kolumn
+# Funkcja do tworzenia szeregu czasowego na podstawie wybranych miesi?cy
+# UWAGA! - trzeba zadba? o odpowiednie nazwy kolumn
 filtruj_miesiace2 <- function(df, dzien_tygodnia){
   X <- data.frame(date = numeric(), bal_amt = numeric(), stringsAsFactors = FALSE)
   df$bool <- NA
