@@ -1,7 +1,7 @@
 library(shiny)
 
 shinyUI(fluidPage(
-  titlePanel("Retail current accounts forecast"),
+  titlePanel("DepoForecast"),
   
   sidebarLayout(
     sidebarPanel(

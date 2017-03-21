@@ -1,26 +1,16 @@
 library(shiny)
 library(ggplot2)
 
+source("plotting.R")
+
 shinyServer(function(input, output, session) {
   
   output$depo_forecast <- renderPlot({
     
     coef <<- input$trend_mod
     ending_day <- input$ending_date
+    plotPrediction(starting_day, ending_day, coef, scale, predykcjaFinal)
     
-    PredykcjaTmp <<- predykcjaFinal[predykcjaFinal$date <= ending_day,]
-    
-    korekta <- c(0, (1:(ending_day-starting_day))*coef*10^6/scale)
-    PredykcjaTmp$poKorekcie <<- PredykcjaTmp$poKorekcie + korekta
-    
-    ggplot(PredykcjaTmp, aes(x = PredykcjaTmp$date)) + 
-      geom_line(aes(y = PredykcjaTmp$poKorekcie, color="Corrected")) +
-      geom_line(aes(y = PredykcjaTmp$x, color="Vanilla")) +
-      ggtitle("Forecast") +
-      labs(x = "Days ahead", y = "Deposits level (MM)") +
-      scale_colour_manual("",
-        breaks = c("Corrected", "Vanilla"),
-        values = c("darkblue", "orange"))
   })
   
   output$backtesting <- renderPlot({

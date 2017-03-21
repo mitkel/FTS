@@ -49,7 +49,6 @@ Holt_Winters_Forecast <- holt_winters_prognoza(trend_szereg, liczba_dni = 12*31)
 predykcja <- prediction(Dane_Uzupelnione[Idx,], trend_szereg, liczba_dni = 12*31)
 predykcja[,"poKorekcie"] <- predykcja$x
 predykcjaFinal <- cast_prediction(predykcja)
-PredykcjaTmp <- predykcjaFinal[predykcjaFinal$date <= ending_day,]
 
 casted_obs_number <- length(predykcjaFinal[,1])
-last_day <- predykcjaFinal$date[casted_obs_number]
+last_day_available <- predykcjaFinal$date[casted_obs_number]
