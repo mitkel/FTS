@@ -1,7 +1,7 @@
 library(shiny)
 
 shinyUI(fluidPage(
-  titlePanel("Retail current accounts forecast"),
+  titlePanel("DepoForecast"),
   
   sidebarLayout(
     sidebarPanel(
@@ -12,7 +12,7 @@ shinyUI(fluidPage(
     
     dateInput("ending_date", label=h5("Ending date"),
               value=as.Date(ending_day), 
-              min = as.Date(starting_day + 1), max=as.Date(last_day)),
+              min = as.Date(starting_day + 1), max=as.Date(last_day_available)),
     
     textInput("CSV_name", label=h5("Filename:"), 
               value = paste("depo_forecast_", format(Sys.time(), "%y%m%d"), ".csv", sep="")),
