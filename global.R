@@ -3,7 +3,6 @@
 ################################
 library(foreign)
 library(zoo)
-library(scales)
 library(stats)
 library(reshape)
 library(forecast)
@@ -60,4 +59,5 @@ last_day_available <- predykcjaFinal$date[casted_obs_number]
 ################################
 
 predykcjaBacktesting <- predykcjaFinal
-
+backtesting_start <- as.Date(predykcjaBacktesting$date[1])
+backtesting_end <- as.Date(last(predykcjaBacktesting$date))

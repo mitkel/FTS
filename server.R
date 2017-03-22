@@ -18,7 +18,7 @@ shinyServer(function(input, output, session) {
     coef <- input$trend_mod_testing
     starting <- input$dates_backtesting[1]
     ending <- input$dates_backtesting[2]
-    plotBacktesting(starting, ending, starting_day, ending_day, 
+    plotBacktesting(starting, ending, backtesting_start, backtesting_end,
                     coef, scale, 
                     Dane_Uzupelnione, predykcjaBacktesting)
     
@@ -26,13 +26,8 @@ shinyServer(function(input, output, session) {
   
   output$Historia_danych_trend <- renderPlot({
     
-    ggplot(Dane_Uzupelnione, aes(x=Dane_Uzupelnione$date)) + 
-      geom_line(aes(y = Dane_Uzupelnione$bal_amt, color = "Historic level")) + 
-      geom_line(aes(y = Dekompozycja$time.series[,"trend"], color = "Trend estimated")) +
-      labs(x = "date", y = "Deposits level (MM)") +
-      scale_colour_manual("",
-        breaks = c("Historic level", "Trend estimated"),
-        values = c("black", "blue"))
+    plotHistory(Dane_Uzupelnione, Dekompozycja$time.series[,"trend"])
+    
   })
   
   output$Decomposition <- renderPlot({
