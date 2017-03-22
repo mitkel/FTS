@@ -1,7 +1,7 @@
 library(shiny)
 library(ggplot2)
 
-source("plotting.R")
+source("Functions/plotting.R")
 
 shinyServer(function(input, output, session) {
   
@@ -18,34 +18,8 @@ shinyServer(function(input, output, session) {
     coef <- input$trend_mod_testing
     starting <- input$dates_backtesting[1]
     ending <- input$dates_backtesting[2]
-    
-    Idx1 <- Dane_Uzupelnione$date <= starting
-    Idx2 <- Dane_Uzupelnione$date <= ending
-    
-    Dekompozycja <- stl(ts(Dane_Uzupelnione$bal_amt[Idx1], frequency = 31), "periodic")
-    trend_szereg <- as.data.frame(Dekompozycja$time.series[,"trend"])
-    Holt_Winters_Forecast <- holt_winters_prognoza(trend_szereg, liczba_dni = 12*31)
-    predykcja <- prediction(Dane_Uzupelnione[Idx1,], trend_szereg, liczba_dni = 12*31)
-    predykcja[,"poKorekcie"] <- predykcja$x
-    
-    predykcjaFinal <- cast_prediction(predykcja, start_day = starting)
-    PredykcjaTmp <- predykcjaFinal[predykcjaFinal$date <= ending,]
-    
-    korekta <- c(0, (1:(ending-starting-1))*coef*10^6/scale)
-    DaneTmp <- Dane_Uzupelnione[PredykcjaTmp$daty,]
-    DaneTmp <- aggregate(DaneTmp$bal_amt, list(DaneTmp$date), sum)
-    colnames(DaneTmp) <- c("date","bal_amt")
-    # PredykcjaTmp$poKorekcie <<- PredykcjaTmp$poKorekcie + korekta
-    
-    ggplot(PredykcjaTmp, aes(x = PredykcjaTmp$date)) + 
-      geom_line(aes(y = PredykcjaTmp$poKorekcie, color="Corrected")) +
-      geom_line(aes(y = PredykcjaTmp$x, color="Vanilla")) +
-      geom_line(aes(y = DaneTmp$bal_amt, color="original")) +
-      ggtitle("Backtesting") +
-      labs(x = "Days ahead", y = "Deposits level (MM)") +
-      scale_colour_manual("",
-                          breaks = c("Corrected", "Vanilla", "original"),
-                          values = c("darkblue", "orange", "purple"))
+    plotBacktesting(starting_day, ending_day, starting, ending, coef, scale, 
+                    Dane_Uzupelnione, predykcjaBacktesting)
     
   })
   
@@ -65,7 +39,7 @@ shinyServer(function(input, output, session) {
   })
   
   observeEvent(input$save, {
-    write.table(PredykcjaTmp[,c("date","x","poKorekcie")], file = paste0("OUTPUT/",input$CSV_name, sep=""), sep=";", row.names = FALSE)
+    write.table(PredykcjaTmp[,c("date","x","Corrected")], file = paste0("OUTPUT/",input$CSV_name, sep=""), sep=";", row.names = FALSE)
   })
   
   observe({
