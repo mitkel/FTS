@@ -42,7 +42,7 @@ ending_day <- add_month(starting_day)
 # DEKOMPOZYCJA I PROGNOZA
 ################################
 
-source("Functions/prediction.R") # wczytywanie funkcji
+source("Functions/prediction.R")
 source("Functions/casting_back.R")
 
 Dekompozycja <- stl(ts(Dane_Uzupelnione$bal_amt, frequency = 31), "periodic")
