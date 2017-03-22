@@ -112,7 +112,7 @@ ffill <- function(A) {
 
 add_month <- function(dat){
   newD <- as.Date(timeLastDayInMonth(dat)) + 1
-  if(day(timeLastDayInMonth(newD)) <= day(dat)){
+  if(day(timeLastDayInMonth(newD)) > day(dat)){
     newD <- as.Date(paste(year(newD),month(newD),day(dat), sep="-"))
   }
   else{

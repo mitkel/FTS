@@ -18,7 +18,8 @@ shinyServer(function(input, output, session) {
     coef <- input$trend_mod_testing
     starting <- input$dates_backtesting[1]
     ending <- input$dates_backtesting[2]
-    plotBacktesting(starting_day, ending_day, starting, ending, coef, scale, 
+    plotBacktesting(starting, ending, starting_day, ending_day, 
+                    coef, scale, 
                     Dane_Uzupelnione, predykcjaBacktesting)
     
   })
