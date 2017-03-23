@@ -61,12 +61,19 @@ plotBacktesting <- function(starting, ending, act_start, act_end,
 }
   
 plotHistory <- function(Dane_Uzupelnione, trend){
+  break.vec <- seq.Date(from = Dane_Uzupelnione$date[1], to = last(Dane_Uzupelnione$date), 
+                        by = "3 months")
+  break.minor.vec <- seq.Date(from = Dane_Uzupelnione$date[1], to = last(Dane_Uzupelnione$date), 
+                              by = "months")
+
   p <- ggplot(Dane_Uzupelnione, aes(x=Dane_Uzupelnione$date)) + 
           geom_line(aes(y = Dane_Uzupelnione$bal_amt, color = "Historic level")) + 
           geom_line(aes(y = trend, color = "Trend estimated")) +
           labs(x = "date", y = "Deposits level (MM)") +
           scale_colour_manual("",
                               breaks = c("Historic level", "Trend estimated"),
-                              values = c("black", "blue"))
+                              values = c("black", "blue")) +
+          scale_x_date(minor_breaks = break.minor.vec, 
+                       breaks = break.vec)
   return(p)
 }
